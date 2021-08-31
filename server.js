@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { ApolloServer, gql } from "apollo-server";
+import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 
 const client = new PrismaClient();
 
@@ -46,6 +47,7 @@ const resolvers = {
 const server = new ApolloServer({
   typeDefs,
   resolvers,
+  plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
 });
 
 server.listen().then(({ url }) => {
