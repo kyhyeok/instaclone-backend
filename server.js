@@ -1,5 +1,6 @@
 require("dotenv").config();
 import express from "express";
+import logger from "morgan";
 import { ApolloServer } from "apollo-server-express";
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core";
 const {
@@ -11,7 +12,7 @@ import { getUser } from "./users/users.utils";
 const PORT = process.env.PORT;
 
 const startServer = async () => {
-  const server = new ApolloServer({
+  const apolloServer = new ApolloServer({
     typeDefs,
     resolvers,
     context: async ({ req }) => {
@@ -22,19 +23,21 @@ const startServer = async () => {
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
   });
 
-  await server.start();
+  await apolloServer.start();
 
   const app = express();
+  // app.use(logger("tiny"))
 
   app.use(graphqlUploadExpress());
 
-  server.applyMiddleware({ app });
-  // app.use(graphqlUploadExpress());
+  apolloServer.applyMiddleware({ app });
+
+  app.use("/static", express.static("uploads"));
 
   await new Promise((r) => app.listen({ port: PORT }, r));
 
   console.log(
-    `🚀 Server ready at http://localhost:${PORT}${server.graphqlPath}`
+    `🚀 apolloServer ready at http://localhost:${PORT}${apolloServer.graphqlPath}`
   );
 };
 
