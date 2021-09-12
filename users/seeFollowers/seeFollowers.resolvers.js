@@ -19,7 +19,7 @@ export default {
         .findUnique({ where: { username } })
         .followers({
           take: perPageCount,
-          skip: (page - 1) * perPageCount,
+          skip: page > 0 ? (page - 1) * perPageCount : 0,
         });
       const totalFollowers = await client.user.count({
         where: {
