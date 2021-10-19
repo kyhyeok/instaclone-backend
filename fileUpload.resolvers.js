@@ -1,4 +1,4 @@
-import { finished } from "stream/promises";
+import { finished } from "stream-promise";
 import { GraphQLUpload } from "graphql-upload";
 
 export default {
