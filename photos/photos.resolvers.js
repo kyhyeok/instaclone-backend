@@ -1,9 +1,9 @@
-import client from '../client'
+import client from '../client';
 
 export default {
     Photo: {
         user: ({ userId }) => {
-            return client.user.findUnique({ where: { id: userId } })
+            return client.user.findUnique({ where: { id: userId } });
         },
         hashtags: ({ id }) =>
             client.hashtag.findMany({
@@ -16,6 +16,7 @@ export default {
                 },
             }),
         likes: ({ id }) => client.like.count({ where: { photoId: id } }),
+        comments: ({ id }) => client.comment.count({ where: { photoId: id } }),
     },
     Hashtag: {
         photos: ({ id }, { page }) => {
@@ -25,7 +26,7 @@ export default {
                         id,
                     },
                 })
-                .photos()
+                .photos();
         },
         totalPhotos: ({ id }) =>
             client.photo.count({
@@ -38,4 +39,4 @@ export default {
                 },
             }),
     },
-}
+};

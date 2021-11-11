@@ -1,7 +1,7 @@
-import { gql } from "apollo-server";
+import { gql } from 'apollo-server-core';
 
 export default gql`
-  type Query {
-    seeProfile(username: String!): User
-  }
+    type Query {
+        seeProfile(username: String!): User
+    }
 `;
