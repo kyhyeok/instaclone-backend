@@ -23,7 +23,7 @@ export function protectedResolver(ourResolver) {
     if (!context.loggedInUser) {
       return {
         ok: false,
-        error: "Please log in to perform t his action.",
+        error: "Please log in to perform this action.",
       };
     }
     return ourResolver(root, args, context, info);
