@@ -20,7 +20,7 @@ export default {
                         error: "This user down not exist",
                     };
                 }
-                const room = await client.room.create({
+                room = await client.room.create({
                     data: {
                         users: {
                             connect: [
@@ -49,25 +49,25 @@ export default {
                         error: "Room not found",
                     };
                 }
-                await client.message.create({
-                    data: {
-                        payload,
-                        room: {
-                            connect: {
-                                id: room.id,
-                            },
-                        },
-                        user: {
-                            connect: {
-                                id: loggedInUser.id,
-                            },
+            }
+            await client.message.create({
+                data: {
+                    payload,
+                    room: {
+                        connect: {
+                            id: room.id,
                         },
                     },
-                });
-                return {
-                    ok: true,
-                };
-            }
+                    user: {
+                        connect: {
+                            id: loggedInUser.id,
+                        },
+                    },
+                },
+            });
+            return {
+                ok: true,
+            };
         }),
     },
 };
