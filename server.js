@@ -1,40 +1,67 @@
-require('dotenv').config();
-import express from 'express';
-import logger from 'morgan';
-import { ApolloServer } from 'apollo-server-express';
-import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
+require("dotenv").config();
+import express from "express";
+import logger from "morgan";
+import { createServer } from "http";
+import { execute, subscribe } from "graphql";
+import { SubscriptionServer } from "subscriptions-transport-ws";
+import { ApolloServer } from "apollo-server-express";
 const {
     graphqlUploadExpress, // A Koa implementation is also exported.
-} = require('graphql-upload');
-import schema, { typeDefs, resolvers } from './schema';
-import { getUser } from './users/users.utils';
+} = require("graphql-upload");
+// import schema, { typeDefs, resolvers } from "./schema";
+import { makeExecutableSchema } from "@graphql-tools/schema";
+import { typeDefs, resolvers } from "./schema";
+import { getUser } from "./users/users.utils";
+import pubsub from "./pobsub";
+import { ApolloServerPluginDrainHttpServer } from "apollo-server-core/dist/plugin/drainHttpServer";
 
 const PORT = process.env.PORT;
 
+const schema = makeExecutableSchema({ typeDefs, resolvers });
+
+const app = express();
+
+const httpServer = createServer(app);
+
+const subscriptionServer = SubscriptionServer.create(
+    { schema, execute, subscribe },
+    { server: httpServer }
+);
+
 const startServer = async () => {
     const apolloServer = new ApolloServer({
-        typeDefs,
-        resolvers,
+        schema,
         context: async ({ req }) => {
-            return {
-                loggedInUser: await getUser(req.headers.token),
-            };
+            if (req) {
+                return {
+                    loggedInUser: await getUser(req.headers.token),
+                };
+            }
         },
-        plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
+        plugins: [
+            {
+                async serverWillStart() {
+                    return {
+                        async drainServer() {
+                            subscriptionServer.close();
+                        },
+                    };
+                },
+            },
+        ],
     });
 
     await apolloServer.start();
 
-    const app = express();
-    // app.use(logger("tiny"))
+    app.use(logger("tiny"));
+
+    app.use("/static", express.static("uploads"));
 
     app.use(graphqlUploadExpress());
 
     apolloServer.applyMiddleware({ app });
 
-    app.use('/static', express.static('uploads'));
-
-    await new Promise((r) => app.listen({ port: PORT }, r));
+    await new Promise((r) => httpServer.listen(PORT, r));
 
     console.log(
         `🚀 apolloServer ready at http://localhost:${PORT}${apolloServer.graphqlPath}`
