@@ -13,7 +13,6 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { typeDefs, resolvers } from "./schema";
 import { getUser } from "./users/users.utils";
 import pubsub from "./pobsub";
-import { ApolloServerPluginDrainHttpServer } from "apollo-server-core/dist/plugin/drainHttpServer";
 
 const PORT = process.env.PORT;
 
