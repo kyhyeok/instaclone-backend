@@ -1,55 +1,59 @@
 import client from "../../client";
+import { NEW_MESSAGE } from "../../constants";
+import pubsub from "../../pobsub";
 import { protectedResolver } from "../../users/users.utils";
 
 export default {
     Mutation: {
-        sendMessage: protectedResolver(async (_, { payload, roomId, userId }, { loggedInUser }) => {
-            let room = null;
-            if (userId) {
-                const user = await client.user.findUnique({
-                    where: {
-                        id: userId,
-                    },
-                    select: {
-                        id: true,
-                    },
-                });
-                if (!user) {
-                    return {
-                        ok: false,
-                        error: "This user down not exist",
-                    };
-                }
-                const room = await client.room.create({
-                    data: {
-                        users: {
-                            connect: [
-                                {
-                                    id: userId,
-                                },
-                                {
-                                    id: loggedInUser.id,
-                                },
-                            ],
+        sendMessage: protectedResolver(
+            async (_, { payload, roomId, userId }, { loggedInUser }) => {
+                let room = null;
+                if (userId) {
+                    const user = await client.user.findUnique({
+                        where: {
+                            id: userId,
                         },
-                    },
-                });
-            } else if (roomId) {
-                room = await client.room.findUnique({
-                    where: {
-                        id: roomId,
-                    },
-                    select: {
-                        id: true,
-                    },
-                });
-                if (!room) {
-                    return {
-                        ok: false,
-                        error: "Room not found",
-                    };
+                        select: {
+                            id: true,
+                        },
+                    });
+                    if (!user) {
+                        return {
+                            ok: false,
+                            error: "This user down not exist",
+                        };
+                    }
+                    room = await client.room.create({
+                        data: {
+                            users: {
+                                connect: [
+                                    {
+                                        id: userId,
+                                    },
+                                    {
+                                        id: loggedInUser.id,
+                                    },
+                                ],
+                            },
+                        },
+                    });
+                } else if (roomId) {
+                    room = await client.room.findUnique({
+                        where: {
+                            id: roomId,
+                        },
+                        select: {
+                            id: true,
+                        },
+                    });
+                    if (!room) {
+                        return {
+                            ok: false,
+                            error: "Room not found",
+                        };
+                    }
                 }
-                await client.message.create({
+                const message = await client.message.create({
                     data: {
                         payload,
                         room: {
@@ -64,10 +68,11 @@ export default {
                         },
                     },
                 });
+                pubsub.publish(NEW_MESSAGE, { roomUpdates: { ...message } });
                 return {
                     ok: true,
                 };
             }
-        }),
+        ),
     },
 };

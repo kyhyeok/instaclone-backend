@@ -13,7 +13,7 @@ export default {
             if (!loggedInUser) {
                 return 0;
             } else {
-                return client.message.cound({
+                return client.message.count({
                     where: {
                         read: false,
                         roomId: id,
@@ -27,4 +27,11 @@ export default {
             }
         },
     },
+    Message: {
+        user: ({id}) => client.message.findUnique({
+            where: {
+                id
+            }
+        }).user()
+    }
 };
